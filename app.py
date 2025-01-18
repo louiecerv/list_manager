@@ -1,45 +1,47 @@
 import streamlit as st
-import pandas as pd
+from  listutils import add_item, edit_item, delete_item
+
+# Initialize session state to store the list of items and new item
+if 'item_list' not in st.session_state:
+    st.session_state.item_list = []
+if 'new_item' not in st.session_state:
+    st.session_state.new_item = ''
 
 def main():
-    """
-    Streamlit app to manage a list using st.dataframe.
-    """
+    # Streamlit app
+    st.title('Streamlit List App')
 
-    st.title("List Manager with DataFrame")
+    # Create a tab for each action
+    tab_add, tab_list, tab_edit = st.tabs(['Add Item', 'List of Items', 'Edit/Delete Item'])
 
-    # Initialize list
-    if "items" not in st.session_state:
-        st.session_state.items = []
+    # Add new item tab
+    with tab_add:
+        st.header('Add New Item')
+        st.session_state.new_item = st.text_input('Enter new item')
+        st.button('Add', on_click=add_item)
 
-    # Add item
-    new_item = st.text_input("Add item:")
-    if st.button("Add"):
-        st.session_state.items.append(new_item)
-        st.experimental_rerun()
+    # List of items tab
+    with tab_list:
+        st.header('List of Items')
+        for i, item in enumerate(st.session_state.item_list):
+            st.write(f'{i+1}. {item}')
 
-    # Display list in DataFrame
-    df = pd.DataFrame(st.session_state.items, columns=["Items"])
-    st.dataframe(df)
+    # Edit or delete item tab
+    with tab_edit:
+        st.header('Edit or Delete Item')
+        selected_item = st.selectbox('Select Item', st.session_state.item_list)
+        if selected_item:
+            index = st.session_state.item_list.index(selected_item)
+            edit_value = st.text_input('Edit Item', value=selected_item)
+            if st.button('Save Edit'):
+                edit_item(index, edit_value)
+            if st.button('Delete'):
+                delete_item(index)
 
-    # Select item (using index)
-    if st.session_state.items:
-        selected_index = st.number_input("Select item index to edit/delete (starting from 0):", 
-                                         min_value=0, 
-                                         max_value=len(st.session_state.items) - 1, 
-                                         value=0, 
-                                         step=1)
+    if st.button("Show Items"):
 
-        # Edit item
-        edited_item = st.text_input("Edit item:", value=st.session_state.items[selected_index])
-        if st.button("Edit"):
-            st.session_state.items[selected_index] = edited_item
-            st.experimental_rerun()
+        for item in st.session_state.item_list:
+            st.write(f"Item: {item}")
 
-        # Delete item
-        if st.button("Delete"):
-            del st.session_state.items[selected_index]
-            st.experimental_rerun()
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    main()      
